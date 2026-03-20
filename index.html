@@ -3,90 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maze Stalker: Character Status</title>
+    <title>Maze Stalker: The Expedition</title>
     <style>
         body { 
             background: #0a0a12; color: white; font-family: 'Segoe UI', sans-serif; 
             display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; 
         }
-        #game-container { position: relative; margin-top: 10px; display: flex; gap: 20px; }
-        
-        /* Side Panel for Stats and Player Icon */
-        .side-panel {
-            display: flex; flex-direction: column; gap: 15px;
-            background: rgba(22, 33, 62, 0.9); padding: 20px;
-            border-radius: 8px; border: 1px solid #16213e; width: 150px;
+
+        /* Home & Overlay Styles */
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1a1a2e 0%, #0a0a12 100%);
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; z-index: 20; text-align: center;
         }
 
-        .player-card {
-            text-align: center; background: #1a1a2e; padding: 10px;
-            border: 2px solid #4fd1c5; border-radius: 5px;
+        #game-interface { display: none; flex-direction: column; align-items: center; }
+
+        #game-container { position: relative; margin-top: 10px; display: flex; gap: 20px; align-items: flex-start; }
+        
+        .side-panel {
+            display: flex; flex-direction: column; gap: 15px;
+            background: rgba(22, 33, 62, 0.95); padding: 20px;
+            border-radius: 8px; border: 1px solid #16213e; width: 160px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
+
+        .panel-section {
+            text-align: center; background: #1a1a2e; padding: 10px;
+            border: 1px solid #0f3460; border-radius: 5px;
+        }
+
+        .section-label { font-size: 0.7em; color: #4fd1c5; letter-spacing: 1px; margin-bottom: 5px; font-weight: bold; }
 
         #playerIconCanvas {
             background: #9fb471; image-rendering: pixelated;
-            border: 2px solid #0f3460; margin-top: 10px;
+            border: 2px solid #0f3460; border-radius: 3px;
         }
 
-        canvas#gameCanvas { 
-            border: 4px solid #16213e; background-color: #000; 
-            image-rendering: pixelated; box-shadow: 0 0 40px rgba(0,0,0,0.9); 
-        }
+        #minimap { width: 140px; height: 110px; background: #000; border: 1px solid #4fd1c5; image-rendering: pixelated; display: block; }
 
-        #minimap {
-            position: absolute; bottom: 20px; left: 190px; /* Adjusted for side panel */
-            width: 120px; height: 100px; border: 2px solid #4fd1c5;
-            background: rgba(0,0,0,0.7); image-rendering: pixelated;
-        }
+        canvas#gameCanvas { border: 4px solid #16213e; background-color: #000; image-rendering: pixelated; box-shadow: 0 0 40px rgba(0,0,0,1); }
 
         .ui-top { 
             margin-top: 10px; background: rgba(22, 33, 62, 0.9); padding: 10px 20px; 
-            border-radius: 8px; text-align: center; border: 1px solid #16213e; width: 620px;
+            border-radius: 8px; border: 1px solid #16213e; width: 850px;
             display: flex; justify-content: space-between; align-items: center;
         }
 
-        #overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); flex-direction: column; justify-content: center;
-            align-items: center; z-index: 10;
-        }
-        
         button {
-            padding: 8px 12px; cursor: pointer; background: #e94560; color: white; 
-            border: none; border-radius: 4px; font-weight: bold;
+            padding: 12px 20px; cursor: pointer; background: #e94560; color: white; 
+            border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; margin: 5px;
         }
+        button:hover { background: #ff5d78; transform: scale(1.05); }
+        .btn-secondary { background: #0f3460; }
+
+        h1 { font-size: 4em; margin-bottom: 0.2em; color: #4fd1c5; text-shadow: 0 0 20px rgba(79, 209, 197, 0.4); }
+        .score-box { background: rgba(255,255,255,0.05); padding: 15px 30px; border-radius: 8px; margin: 20px; border: 1px solid #16213e; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <h1 style="color: #4fd1c5;">AREA CLEARED</h1>
-        <button onclick="nextLevel()">Next Area</button>
+    <div id="homeScreen" class="screen">
+        <h1>MAZE STALKER</h1>
+        <div class="score-box">
+            <p style="margin: 5px 0; color: #888;">PERSONAL BEST</p>
+            <h2 id="bestScoreText" style="margin: 0; font-size: 2.5em; color: #f9d423;">00000</h2>
+        </div>
+        <div id="continueInfo" style="margin-bottom: 20px; color: #4fd1c5; height: 20px;"></div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="startNewGame()">NEW EXPEDITION</button>
+            <button id="continueBtn" class="btn-secondary" onclick="continueGame()" style="display: none;">CONTINUE RUN</button>
+        </div>
     </div>
 
-    <div class="ui-top">
-        <div id="levelDisplay">AREA: 1</div>
-        <div id="status">Find the Key</div>
-        <button id="muteBtn" onclick="toggleMute()">🎵 ON</button>
+    <div id="winOverlay" class="screen" style="display: none; background: rgba(0,0,0,0.9);">
+        <h1 style="color: #4fd1c5; font-size: 3em;">AREA CLEARED</h1>
+        <p id="scoreBreakdown" style="font-size: 1.2em; line-height: 1.6;"></p>
+        <div style="margin-top: 20px;">
+            <button onclick="nextLevel()">DESCEND DEEPER</button>
+            <button class="btn-secondary" onclick="saveAndExit()">SAVE & EXIT</button>
+        </div>
     </div>
 
-    <div id="game-container">
-        <div class="side-panel">
-            <div class="player-card">
-                <div style="font-size: 0.8em; margin-bottom: 5px; color: #4fd1c5;">PLAYER</div>
-                <canvas id="playerIconCanvas" width="64" height="64"></canvas>
-                <div id="keyStatus" style="font-size: 0.7em; margin-top: 8px; color: #aaa;">NO KEY</div>
-            </div>
-            <div style="font-size: 0.8em; color: #888; text-align: center;">
-                Use WASD to move through the deep maze.
-            </div>
+    <div id="deathOverlay" class="screen" style="display: none; background: rgba(0,0,0,0.95);">
+        <h1 style="color: #e94560; font-size: 3em;">ELIMINATED</h1>
+        <p style="color: #aaa;">Your progress has been reset.</p>
+        <button onclick="showHomeScreen()">RETURN TO MENU</button>
+    </div>
+
+    <div id="game-interface">
+        <div class="ui-top">
+            <div id="levelDisplay">FLOOR: 1</div>
+            <div id="timerDisplay">TIME: 05:00</div>
+            <div id="scoreDisplay">SCORE: 00000</div>
+            <button id="muteBtn" onclick="toggleMute()">🎵 Audio: ON</button>
         </div>
 
-        <canvas id="gameCanvas"></canvas>
-        <canvas id="minimap"></canvas>
+        <div id="game-container">
+            <div class="side-panel">
+                <div class="panel-section">
+                    <div class="section-label">CHARACTER</div>
+                    <canvas id="playerIconCanvas" width="64" height="64"></canvas>
+                    <div id="keyStatus" style="font-size: 0.7em; margin-top: 8px; color: #aaa;">UNARMED</div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-label">RADAR</div>
+                    <canvas id="minimap" width="140" height="110"></canvas>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="section-label">STATUS</div>
+                    <div id="status" style="font-size: 0.6em; color: #888;">Secure the key.</div>
+                </div>
+            </div>
+
+            <canvas id="gameCanvas"></canvas>
+        </div>
     </div>
 
 <script>
+// --- CORE REFS ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const miniCanvas = document.getElementById('minimap');
@@ -94,7 +132,7 @@ const mctx = miniCanvas.getContext('2d');
 const pIconCanvas = document.getElementById('playerIconCanvas');
 const pctx = pIconCanvas.getContext('2d');
 
-// --- 1. SETTINGS ---
+// --- 1. CONFIG (UNCHANGED) ---
 const RADIUS = 10; 
 const VIEW_SIZE = (RADIUS * 2) + 1; 
 const TILE_SIZE = 32; 
@@ -110,71 +148,170 @@ const TILE_MAP = {
     Wall_IBL: [0, 2], Wall_IBR: [1, 0]
 };
 
-// --- 2. AUDIO ---
+// --- 2. AUDIO & PERSISTENT STATE ---
 const bgMusic = new Audio('adventure_ST.mp3');
 bgMusic.loop = true;
 let isMuted = false, musicStarted = false;
 
-function toggleMute() {
-    isMuted = !isMuted; bgMusic.muted = isMuted;
-    document.getElementById('muteBtn').innerText = isMuted ? "🔇 OFF" : "🎵 ON";
-}
+let currentLevel = 1;
+let totalScore = 0;
+let levelTime = 300;
+let timerInterval = null;
 
-// --- 3. GAME STATE ---
 const GRID_W = 55, GRID_H = 43;
-let currentLevel = 1, maze, player, enemy, isGameOver = false;
+let maze, player, enemy, isGameOver = true;
 const tileset = new Image();
 tileset.src = 'tileset.png'; 
-tileset.onload = initGame;
 
+tileset.onload = () => {
+    showHomeScreen();
+};
+
+// --- 3. ONBOARDING & STORAGE LOGIC ---
+function showHomeScreen() {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    document.getElementById('homeScreen').style.display = 'flex';
+    document.getElementById('game-interface').style.display = 'none';
+    document.getElementById('winOverlay').style.display = 'none';
+    document.getElementById('deathOverlay').style.display = 'none';
+
+    // Top Score
+    const best = localStorage.getItem('maze_stalker_best') || 0;
+    document.getElementById('bestScoreText').innerText = best.toString().padStart(5, '0');
+
+    // Continue Check
+    const saved = localStorage.getItem('maze_stalker_save');
+    if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('continueBtn').style.display = 'block';
+        document.getElementById('continueInfo').innerText = `Active Run: Floor ${data.level} | Score ${data.score}`;
+    } else {
+        document.getElementById('continueBtn').style.display = 'none';
+        document.getElementById('continueInfo').innerText = "";
+    }
+}
+
+function startNewGame() {
+    localStorage.removeItem('maze_stalker_save');
+    currentLevel = 1;
+    totalScore = 0;
+    initGame();
+}
+
+function continueGame() {
+    const saved = JSON.parse(localStorage.getItem('maze_stalker_save'));
+    currentLevel = saved.level;
+    totalScore = saved.score;
+    initGame();
+}
+
+function saveAndExit() {
+    // Save progress
+    localStorage.setItem('maze_stalker_save', JSON.stringify({
+        level: currentLevel,
+        score: totalScore
+    }));
+    showHomeScreen();
+}
+
+// --- 4. GAME CORE ---
 function initGame() {
+    clearInterval(timerInterval);
+    document.getElementById('homeScreen').style.display = 'none';
+    document.getElementById('winOverlay').style.display = 'none';
+    document.getElementById('deathOverlay').style.display = 'none';
+    document.getElementById('game-interface').style.display = 'flex';
+
     maze = generateComplexMaze(GRID_W, GRID_H);
     player = { x: 1, y: 1, hasKey: false };
     enemy = { x: GRID_W-2, y: 1, dirX: 0, dirY: 1 };
     isGameOver = false;
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('levelDisplay').innerText = `AREA: ${currentLevel}`;
-    document.getElementById('status').innerText = "Find the Key";
+    levelTime = 300;
+    
+    document.getElementById('levelDisplay').innerText = `FLOOR: ${currentLevel}`;
+    document.getElementById('scoreDisplay').innerText = `SCORE: ${totalScore.toString().padStart(5, '0')}`;
+    document.getElementById('status').innerText = "Secure the key.";
+    
+    startTimer();
     updatePlayerUI();
     render();
 }
 
-function nextLevel() { currentLevel++; initGame(); }
-
-// --- 4. NEW: PLAYER ICON UI LOGIC ---
-function updatePlayerUI() {
-    pctx.clearRect(0, 0, pIconCanvas.width, pIconCanvas.height);
-    const coords = player.hasKey ? TILE_MAP.Player.Key : TILE_MAP.Player.Empty;
-    const statusText = document.getElementById('keyStatus');
-    
-    // Draw enlarged player icon
-    pctx.drawImage(tileset, coords[1]*16, coords[0]*16, 16, 16, 0, 0, 64, 64);
-    
-    if(player.hasKey) {
-        statusText.innerText = "KEY CARRIED";
-        statusText.style.color = "#f9d423";
-    } else {
-        statusText.innerText = "NO KEY";
-        statusText.style.color = "#aaa";
-    }
+function startTimer() {
+    timerInterval = setInterval(() => {
+        if (isGameOver) return;
+        levelTime--;
+        const mins = Math.floor(levelTime / 60);
+        const secs = levelTime % 60;
+        document.getElementById('timerDisplay').innerText = `TIME: ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        if (levelTime <= 0) handleDeath();
+    }, 1000);
 }
 
-// --- 5. GENERATOR (Procedural 2-thick) ---
+function nextLevel() { 
+    currentLevel++; 
+    // Auto-save progress so they can continue if they crash or exit next floor
+    localStorage.setItem('maze_stalker_save', JSON.stringify({
+        level: currentLevel,
+        score: totalScore
+    }));
+    initGame(); 
+}
+
+function handleDeath() {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    
+    // Check for high score
+    const best = localStorage.getItem('maze_stalker_best') || 0;
+    if (totalScore > best) localStorage.setItem('maze_stalker_best', totalScore);
+    
+    // Wipe run save
+    localStorage.removeItem('maze_stalker_save');
+    document.getElementById('deathOverlay').style.display = 'flex';
+}
+
+function handleWin() {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    
+    const timeBonus = levelTime * 10;
+    const floorScore = 1000 + timeBonus;
+    totalScore += floorScore;
+    
+    document.getElementById('scoreBreakdown').innerHTML = `Floor Bonus: <span class="stat-value">1000</span><br>Speed Bonus: <span class="stat-value">${timeBonus}</span><br>Current Run Score: <span class="stat-value">${totalScore}</span>`;
+    document.getElementById('winOverlay').style.display = 'flex';
+}
+
+// --- 5. TILESET LOGIC (UNCHANGED) ---
+function updatePlayerUI() {
+    pctx.fillStyle = "#9fb471";
+    pctx.fillRect(0,0,64,64);
+    const coords = player.hasKey ? TILE_MAP.Player.Key : TILE_MAP.Player.Empty;
+    pctx.drawImage(tileset, coords[1]*16, coords[0]*16, 16, 16, 0, 0, 64, 64);
+    const statusText = document.getElementById('keyStatus');
+    statusText.innerText = player.hasKey ? "KEY ACQUIRED" : "UNARMED";
+    statusText.style.color = player.hasKey ? "#f9d423" : "#aaa";
+}
+
 function generateComplexMaze(w, h) {
     let m = Array.from({ length: h }, () => Array(w).fill(1));
     let stack = [{x: 1, y: 1}]; m[1][1] = 0;
     while (stack.length > 0) {
         let curr = stack[stack.length - 1];
-        let dirs = [{x:0,y:-3,sx:0,sy:-1},{x:0,y:3,sx:0,sy:1},{x:-3,y:0,sx:-1,sy:0},{x:3,y:0,sx:1,sy:0}];
-        let neighbors = dirs.map(d => ({x:curr.x+d.x, y:curr.y+d.y, sx:d.sx, sy:d.sy}))
-                            .filter(n => n.x > 0 && n.x < w-1 && n.y > 0 && n.y < h-1 && m[n.y][n.x] === 1);
-        if (neighbors.length > 0) {
-            let n = neighbors[Math.floor(Math.random() * neighbors.length)];
-            m[n.y][n.x] = 0; m[curr.y+n.sy][curr.x+n.sx] = 0; m[curr.y+(n.sy*2)][curr.x+(n.sx*2)] = 0;
-            stack.push(n);
-        } else stack.pop();
+        let dirs = [{x:0,y:-3,sx:0,sy:-1},{x:0,y:3,sx:0,sy:1},{x:-3,y:0,sx:-1,sy:0},{x:3,y:0,sx:1,sy:0}].sort(() => Math.random() - 0.5);
+        let found = false;
+        for(let d of dirs) {
+            let nx = curr.x + d.x, ny = curr.y + d.y;
+            if (nx > 0 && nx < w-1 && ny > 0 && ny < h-1 && m[ny][nx] === 1) {
+                m[ny][nx] = 0; m[curr.y+d.sy][curr.x+d.sx] = 0; m[curr.y+(d.sy*2)][curr.x+(d.sx*2)] = 0;
+                stack.push({x: nx, y: ny}); found = true; break;
+            }
+        }
+        if (!found) stack.pop();
     }
-    // Breadth-First Search for Furthest Gate
     let dists = Array.from({ length: h }, () => Array(w).fill(-1));
     let q = [{x: 1, y: 1, d: 0}]; dists[1][1] = 0;
     let maxD = 0, furthest = {x:1, y:1};
@@ -188,20 +325,17 @@ function generateComplexMaze(w, h) {
             }
         }
     }
-    m[furthest.y][furthest.x] = 2; // Gate
+    m[furthest.y][furthest.x] = 2;
     let p = [];
     for(let y=1; y<h-1; y++) for(let x=1; x<w-1; x++) if(m[y][x]===0 && !(x===1 && y===1)) p.push({x,y});
     let kp = p[Math.floor(Math.random() * p.length)];
-    m[kp.y][kp.x] = 3; // Key
+    m[kp.y][kp.x] = 3;
     return m;
 }
 
-// --- 6. CORE RENDER ---
 function render() {
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     let startX = player.x - RADIUS, startY = player.y - RADIUS;
-
     for (let row = 0; row < VIEW_SIZE; row++) {
         for (let col = 0; col < VIEW_SIZE; col++) {
             let mapX = startX + col, mapY = startY + row;
@@ -221,19 +355,18 @@ function render() {
 }
 
 function drawMinimap() {
-    mctx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+    mctx.fillStyle = "#000"; mctx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
     let sw = miniCanvas.width / GRID_W, sh = miniCanvas.height / GRID_H;
     for(let y=0; y<GRID_H; y++) {
         for(let x=0; x<GRID_W; x++) {
             if(maze[y][x] === 1) mctx.fillStyle = "#16213e";
             else if(maze[y][x] === 2) mctx.fillStyle = "#e94560";
             else if(maze[y][x] === 3) mctx.fillStyle = "#f9d423";
-            else mctx.fillStyle = "#0f3460";
+            else mctx.fillStyle = "#222";
             mctx.fillRect(x*sw, y*sh, sw, sh);
         }
     }
-    mctx.fillStyle = "#4fd1c5";
-    mctx.fillRect(player.x*sw, player.y*sh, sw*2, sh*2);
+    mctx.fillStyle = "#4fd1c5"; mctx.fillRect(player.x*sw, player.y*sh, sw*2, sh*2);
 }
 
 function drawTile(coords, sx, sy) {
@@ -253,40 +386,49 @@ function getWallTile(x, y) {
     return TILE_MAP.Wall;
 }
 
-// --- 7. GAMEPLAY ---
+// --- 6. INPUT ---
 window.addEventListener('keydown', (e) => {
     if (isGameOver) return;
     if (!musicStarted) { bgMusic.play(); musicStarted = true; }
     let nx = player.x, ny = player.y;
     const k = e.key.toLowerCase();
-    if (k === 'w') ny--; else if (k === 's') ny++; else if (k === 'a') nx--; else if (k === 'd') nx++;
+    if (k === 'w' || e.key === 'ArrowUp') ny--; 
+    else if (k === 's' || e.key === 'ArrowDown') ny++; 
+    else if (k === 'a' || e.key === 'ArrowLeft') nx--; 
+    else if (k === 'd' || e.key === 'ArrowRight') nx++;
+    
     if (ny < 0 || ny >= GRID_H || nx < 0 || nx >= GRID_W) return;
     const target = maze[ny][nx];
+    
     if (target === 2 && player.hasKey) {
         maze[ny][nx] = 4; player.hasKey = false;
-        isGameOver = true;
-        document.getElementById('overlay').style.display = 'flex';
+        handleWin();
         updatePlayerUI();
     } else if (target !== 1 && target !== 2) {
         if (target === 3) { 
             player.hasKey = true; maze[ny][nx] = 0; 
-            document.getElementById('status').innerText = "Key Obtained!";
+            document.getElementById('status').innerText = "Reach the Gate";
             updatePlayerUI();
         }
         player.x = nx; player.y = ny;
         updateAI();
-        if (player.x === enemy.x && player.y === enemy.y) location.reload();
+        if (player.x === enemy.x && player.y === enemy.y) handleDeath();
         render();
     }
 });
 
 function updateAI() {
     let dx = player.x - enemy.x, dy = player.y - enemy.y;
-    if (Math.random() < 0.3) {
+    if (Math.random() < 0.4) {
         let mx = Math.sign(dx), my = Math.sign(dy);
         if (Math.abs(dx) > Math.abs(dy)) { if (maze[enemy.y][enemy.x + mx] === 0) enemy.x += mx; }
         else { if (maze[enemy.y + my][enemy.x] === 0) enemy.y += my; }
     }
+}
+
+function toggleMute() {
+    isMuted = !isMuted; bgMusic.muted = isMuted;
+    document.getElementById('muteBtn').innerText = isMuted ? "🔇 Audio: OFF" : "🎵 Audio: ON";
 }
 </script>
 </body>
