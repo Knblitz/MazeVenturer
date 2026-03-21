@@ -1,0 +1,93 @@
+body { 
+    background: #0a0a12; color: white; font-family: 'Segoe UI', sans-serif; 
+    display: flex; flex-direction: column; align-items: center; margin: 0; overflow: hidden; 
+}
+
+/* Screen Overlays */
+.screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #1a1a2e 0%, #0a0a12 100%);
+    display: flex; flex-direction: column; justify-content: center;
+    align-items: center; z-index: 20; text-align: center;
+}
+
+/* UI Elements */
+#game-interface { display: flex; flex-direction: column; align-items: center; }
+#game-container { position: relative; margin-top: 10px; display: flex; gap: 25px; align-items: flex-start; }
+
+.side-panel {
+    display: flex; flex-direction: column; gap: 20px;
+    background: rgba(22, 33, 62, 0.95); padding: 25px;
+    border-radius: 12px; border: 1px solid #16213e; 
+    width: 260px; box-shadow: 0 4px 25px rgba(0,0,0,0.7);
+}
+
+.panel-section {
+    text-align: center; background: #1a1a2e; padding: 15px;
+    border: 1px solid #0f3460; border-radius: 8px;
+}
+
+.section-label { font-size: 0.85em; color: #4fd1c5; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
+
+#playerIconCanvas {
+    background: #9fb471; image-rendering: pixelated;
+    border: 2px solid #0f3460; border-radius: 4px;
+}
+
+#minimap { 
+    width: 230px; height: 180px; background: #05050a; 
+    border: 2px solid #00f2ff; image-rendering: pixelated; 
+    display: block; box-shadow: inset 0 0 15px rgba(0, 242, 255, 0.2);
+}
+
+canvas#gameCanvas { border: 4px solid #16213e; background-color: #000; image-rendering: pixelated; }
+
+.ui-top { 
+    margin-top: 10px; background: rgba(22, 33, 62, 0.9); padding: 15px 25px; 
+    border-radius: 8px; border: 1px solid #16213e; width: 980px; 
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+button {
+    padding: 12px 20px; cursor: pointer; background: #e94560; color: white; 
+    border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; margin: 5px;
+}
+button:hover { background: #ff5d78; transform: scale(1.05); }
+.btn-secondary { background: #0f3460; }
+
+h1 { font-size: 3.5em; margin-bottom: 0.2em; color: #4fd1c5; text-shadow: 0 0 20px rgba(79, 209, 197, 0.4); }
+.stat-value { font-family: 'Courier New', monospace; font-size: 1.4em; color: #f9d423; }
+
+/* PAUSE MENU OVERLAY */
+#pauseOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(10, 10, 18, 0.85);
+    backdrop-filter: blur(8px);
+    display: none; flex-direction: column; justify-content: center;
+    align-items: center; z-index: 30;
+}
+
+.pause-card {
+    background: #16213e; padding: 40px; border-radius: 15px;
+    border: 2px solid #4fd1c5; text-align: center; width: 320px;
+    box-shadow: 0 0 30px rgba(79, 209, 197, 0.2);
+}
+
+.volume-control {
+    margin: 25px 0; text-align: left;
+}
+
+.volume-control label {
+    display: block; font-size: 0.9em; color: #4fd1c5; margin-bottom: 10px;
+}
+
+input[type=range] {
+    width: 100%; cursor: pointer; accent-color: #e94560;
+}
+
+/* HAZARD STYLING */
+.hazard-alert {
+    color: #ff0033;
+    animation: blink 0.5s infinite;
+}
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }

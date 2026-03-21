@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>In-Game | Maze Venturer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="pauseOverlay">
+        <div class="pause-card">
+            <h1 style="font-size: 2.5em; margin-top: 0; color: #f9d423;">PAUSED</h1>
+            <div class="volume-control">
+                <label for="volumeSlider">AUDIO VOLUME</label>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" oninput="updateVolume(this.value)">
+            </div>
+            <button onclick="togglePause()" style="width: 100%;">RESUME</button>
+            <button class="btn-secondary" onclick="saveAndExit()" style="width: 100%; margin-top:10px;">SAVE & EXIT</button>
+            <button class="btn-secondary" onclick="goToMenu()" style="width: 100%; background: #450a0a; margin-top:10px;">ABANDON RUN</button>
+        </div>
+    </div>
+
+    <div id="winOverlay" class="screen" style="display: none;">
+        <h1 style="color: #4fd1c5; font-size: 3em;">AREA SECURED</h1>
+        <p id="scoreBreakdown" style="font-size: 1.2em; line-height: 1.6;"></p>
+        <div style="margin-top: 20px;">
+            <button onclick="nextLevel()">DESCEND FURTHER</button>
+            <button class="btn-secondary" onclick="saveAndExit()">SAVE & RETREAT</button>
+        </div>
+    </div>
+
+    <div id="deathOverlay" class="screen" style="display: none;">
+        <h1 style="color: #e94560; font-size: 3em;">EXPEDITION FAILED</h1>
+        <p style="color: #aaa;">You were cornered in the depths.</p>
+        <button onclick="goToMenu()">RETURN TO BASE</button>
+    </div>
+
+    <div id="game-interface">
+        <div class="ui-top">
+            <div id="levelDisplay">DEPTH: FLOOR 1</div>
+            <div id="timerDisplay">TIME: 05:00</div>
+            <div id="scoreDisplay">SCORE: 00000</div>
+            <button id="muteBtn" onclick="toggleMute()">🎵 Audio: ON</button>
+        </div>
+
+        <div id="game-container">
+            <div class="side-panel">
+                <div class="panel-section">
+                    <div class="section-label">VENTURER ID</div>
+                    <canvas id="playerIconCanvas" width="80" height="80"></canvas>
+                    <div id="keyStatus" style="font-size: 0.8em; margin-top: 10px; color: #aaa; font-weight: bold;">UNARMED</div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="section-label">TACTICAL RADAR</div>
+                    <canvas id="minimap" width="230" height="180"></canvas>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="section-label">THREAT ANALYSIS</div>
+                    <div id="threatDisplay" style="font-size: 1.2em; color: #e94560; font-weight: bold;">0 STALKERS</div>
+                </div>
+            </div>
+
+            <div style="position: relative;">
+                <div id="lighting-layer"></div>
+                <canvas id="gameCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
