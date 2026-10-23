@@ -51,6 +51,16 @@
                 </div>
 
                 <div class="panel-section">
+                    <div class="section-label">ACTIVE MODULE</div>
+                    <div id="skillCard" class="skill-card empty">
+                        <div id="skillIcon" class="skill-icon">NONE</div>
+                        <div id="skillName" class="skill-title">NO MODULE</div>
+                        <div id="skillPrompt" class="skill-subtext">SEARCH CHAMBERS</div>
+                        <div id="skillCooldown" class="cooldown-bar"></div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
                     <div class="section-label">TACTICAL RADAR</div>
                     <canvas id="minimap" width="230" height="180"></canvas>
                 </div>
@@ -58,6 +68,16 @@
                 <div class="panel-section">
                     <div class="section-label">THREAT ANALYSIS</div>
                     <div id="threatDisplay" style="font-size: 1.2em; color: #e94560; font-weight: bold;">0 STALKERS</div>
+                </div>
+
+                <!-- CONTROLS & KEYBINDS HUD -->
+                <div class="panel-section">
+                    <div class="section-label">CONTROLS HUD</div>
+                    <div class="controls-list">
+                        <div class="control-row"><span class="key-badge">WASD</span> / <span class="key-badge">ARROWS</span> Move</div>
+                        <div class="control-row"><span class="key-badge">SPACE</span> Use Active Module</div>
+                        <div class="control-row"><span class="key-badge">ESC</span> Pause / Options</div>
+                    </div>
                 </div>
             </div>
 
